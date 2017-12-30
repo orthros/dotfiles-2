@@ -857,6 +857,20 @@ termboy(){
 		--name termboy \
 		${DOCKER_REPO_PREFIX}/nes "/games/${game}.rom"
 }
+texmaker(){
+    del_stopped texmaker
+
+    docker run --rm -d \
+        --disable-content-trust=true \
+        -v /etc/localtime:/etc/localtime:ro \
+        -v /tmp/.X11-unix:/tmp/.X11-unix \
+        -e QT_DEVICE_PIXEL_RATIO \
+        -e GDK_SCALE \
+        -e GDK_DPI_SCALE \
+        -e "DISPLAY=unix${DISPLAY}" \
+        --name texmaker \
+        texmaker:latest
+}
 tor(){
 	del_stopped tor
 
