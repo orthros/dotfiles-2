@@ -225,6 +225,20 @@ dcos(){
 		-w /root/apps \
 		${DOCKER_REPO_PREFIX}/dcos-cli "$@"
 }
+discord(){
+    del_stopped discord
+
+    docker run -d \
+        --net host \
+        -v /etc/localtime:/etc/localtime:ro \
+        -v /tmp/.X11-unix:/tmp/.X11-unix \
+        -e "DISPLAY=unix${DISPLAY}" \
+        -e QT_DEVICE_PIXEL_RATIO \
+        --device /dev/snd \
+        --device /dev/dri \
+        --name discord \
+        orthros/discord
+}
 firefox(){
 	del_stopped firefox
 
