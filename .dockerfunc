@@ -1087,7 +1087,7 @@ alias yubico-piv-tool="yubico_piv_tool"
 weather(){
     del_stopped weather
 
-    local args=$*
+    local args="$@"
     if [ $# -eq 0 ]
         then
             args="-c"
@@ -1096,7 +1096,7 @@ weather(){
     docker run --rm -it \
                -v /etc/localtime:/etc/localtime:ro \
                --name weather \
-               ${DOCKER_REPO_PREFIX}/weather "$args"
+               ${DOCKER_REPO_PREFIX}/weather $args
 }
 
 ###
