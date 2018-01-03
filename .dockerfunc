@@ -1087,10 +1087,16 @@ alias yubico-piv-tool="yubico_piv_tool"
 weather(){
     del_stopped weather
 
+    local args=$*
+    if [ $# -eq 0 ]
+        then
+            args="-c"
+    fi
+
     docker run --rm -it \
                -v /etc/localtime:/etc/localtime:ro \
                --name weather \
-               ${DOCKER_REPO_PREFIX}/weather "$@"
+               ${DOCKER_REPO_PREFIX}/weather "$args"
 }
 
 ###
