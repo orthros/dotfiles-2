@@ -239,6 +239,23 @@ discord(){
         --name discord \
         orthros/discord
 }
+etcher(){
+    del_stopped etcher
+
+    docker run -d \
+            --disable-content-trust=true \
+            --net host \
+            -v /etc/localtime:/etc/localtime:ro \
+            -v /tmp/.X11-unix:/tmp/.X11-unix \
+            -v $HOME/Documents/images:/home/etcher \
+            -e "DISPLAY=unix${DISPLAY}" \
+            -e QT_DEVICE_PIXEL_RATIO \
+            --device /dev/snd \
+            --device /dev/dri \
+            --device /dev/mmcblk0p1 \
+            --name etcher \
+            etcher
+}
 firefox(){
 	del_stopped firefox
 
