@@ -254,7 +254,7 @@ etcher(){
             --device /dev/dri \
             --device /dev/mmcblk0p1 \
             --name etcher \
-            etcher
+            orthros/etcher
 }
 firefox(){
 	del_stopped firefox
