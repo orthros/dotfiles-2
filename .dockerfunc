@@ -260,7 +260,7 @@ firefox(){
 	del_stopped firefox
 
 	docker run -d \
-		--memory 2gb \
+		--memory 3gb \
 		--net host \
 		--cpuset-cpus 0 \
 		-v /etc/localtime:/etc/localtime:ro \
