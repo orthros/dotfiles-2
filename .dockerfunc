@@ -788,17 +788,19 @@ skype(){
 	del_stopped skype
 	relies_on pulseaudio
 
-	docker run -d \
+	docker run -it \
 		-v /etc/localtime:/etc/localtime:ro \
 		-v /tmp/.X11-unix:/tmp/.X11-unix \
 		-e "DISPLAY=unix${DISPLAY}" \
 		--link pulseaudio:pulseaudio \
 		-e PULSE_SERVER=pulseaudio \
 		--security-opt seccomp:unconfined \
+        -e QT_DEVICE_PIXEL_RATIO \
 		--device /dev/video0 \
 		--group-add video \
 		--group-add audio \
 		--name skype \
+        --entrypoint=sh \
 		${DOCKER_REPO_PREFIX}/skype
 }
 slack(){
