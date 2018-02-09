@@ -262,7 +262,6 @@ firefox(){
 	docker run -d \
 		--memory 3gb \
 		--net host \
-		--cpuset-cpus 0 \
 		-v /etc/localtime:/etc/localtime:ro \
 		-v /tmp/.X11-unix:/tmp/.X11-unix \
 		-v "${HOME}/.firefox/cache:/root/.cache/mozilla" \
