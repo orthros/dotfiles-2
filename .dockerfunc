@@ -26,6 +26,10 @@ del_stopped(){
 		docker rm "$name"
 	fi
 }
+rmctr(){
+	# shellcheck disable=SC2068
+	docker rm -f $@ 2>/dev/null || true
+}
 relies_on(){
 	for container in "$@"; do
 		local state
@@ -104,7 +108,6 @@ az(){
 	docker run -it --rm \
 		-v "${HOME}/.azure:/root/.azure" \
 		--log-driver none \
-		--name azure \
 		${DOCKER_REPO_PREFIX}/azure-cli "$@"
 }
 bees(){
@@ -250,6 +253,12 @@ firefox(){
 	# exit current shell
 	exit 0
 }
+fleetctl(){
+	docker run --rm -it \
+		--entrypoint fleetctl \
+		-v "${HOME}/.fleet://.fleet" \
+		r.j3ss.co/fleet "$@"
+}
 gcalcli(){
 	docker run --rm -it \
 		-v /etc/localtime:/etc/localtime:ro \
@@ -303,6 +312,13 @@ htop(){
 		--name htop \
 		${DOCKER_REPO_PREFIX}/htop
 }
+htpasswd(){
+	docker run --rm -it \
+		--net none \
+		--name htpasswd \
+		--log-driver none \
+		${DOCKER_REPO_PREFIX}/htpasswd "$@"
+}
 http(){
 	docker run -t --rm \
 		-v /var/run/docker.sock:/var/run/docker.sock \
@@ -347,7 +363,8 @@ john(){
 kernel_builder(){
 	docker run --rm -it \
 		-v /usr/src:/usr/src \
-		--cpu-shares=512 \
+		-v /lib/modules:/lib/modules \
+		-v /boot:/boot \
 		--name kernel-builder \
 		${DOCKER_REPO_PREFIX}/kernel-builder
 }
@@ -413,6 +430,16 @@ masscan(){
 		--cap-add NET_ADMIN \
 		--name masscan \
 		${DOCKER_REPO_PREFIX}/masscan "$@"
+}
+mc(){
+	cwd="$(pwd)"
+	name="$(basename "$cwd")"
+
+	docker run --rm -it \
+		--log-driver none \
+		-v "${cwd}:/home/mc/${name}" \
+		--workdir "/home/mc/${name}" \
+		${DOCKER_REPO_PREFIX}/mc "$@"
 }
 mpd(){
 	del_stopped mpd
@@ -536,6 +563,14 @@ notify_send(){
 	local args=${*:2}
 	docker exec -i notify_osd notify-send "$1" "${args}"
 }
+now(){
+	docker run -it --rm \
+		-v "${HOME}/.now:/root/.now" \
+		-v "$(pwd):/usr/src/repo:ro" \
+		--workdir /usr/src/repo \
+		--log-driver none \
+		${DOCKER_REPO_PREFIX}/now "$@"
+}
 opensnitch(){
 	del_stopped opensnitchd
 	del_stopped opensnitch
@@ -577,6 +612,39 @@ opensnitch(){
 		--net host \
 		--name opensnitch \
 		${DOCKER_REPO_PREFIX}/opensnitch
+}
+osquery(){
+	rmctr osquery
+
+	docker run -d --restart always \
+		-v /etc/localtime:/etc/localtime:ro \
+		-v /var/run/docker.sock:/var/run/docker.sock \
+		-v /etc/os-release:/etc/os-release:ro \
+		--net host \
+		--ipc host \
+		--pid host \
+		-e OSQUERY_ENROLL_SECRET \
+		--name osquery \
+		--privileged \
+		${DOCKER_REPO_PREFIX}/osquery \
+		--verbose \
+		--enroll_secret_env=OSQUERY_ENROLL_SECRET \
+		--docker_socket=/var/run/docker.sock \
+		--host_identifier=hostname \
+		--tls_hostname="${OSQUERY_DOMAIN}" \
+		--enroll_tls_endpoint=/api/v1/osquery/enroll \
+		--config_plugin=tls \
+		--config_tls_endpoint=/api/v1/osquery/config \
+		--config_tls_refresh=10 \
+		--disable_distributed=false \
+		--distributed_plugin=tls \
+		--distributed_interval=10 \
+		--distributed_tls_max_attempts=3 \
+		--distributed_tls_read_endpoint=/api/v1/osquery/distributed/read \
+		--distributed_tls_write_endpoint=/api/v1/osquery/distributed/write \
+		--logger_plugin=tls \
+		--logger_tls_endpoint=/api/v1/osquery/log \
+		--logger_tls_period=10
 }
 pandoc(){
 	local file=${*: -1}
@@ -813,6 +881,25 @@ ssh2john(){
 		--entrypoint ssh2john \
 		${DOCKER_REPO_PREFIX}/john "$@"
 }
+sshb0t(){
+	del_stopped sshb0t
+
+	if [[ ! -d "${HOME}/.ssh" ]]; then
+		mkdir -p "${HOME}/.ssh"
+	fi
+
+	if [[ ! -f "${HOME}/.ssh/authorized_keys" ]]; then
+		touch "${HOME}/.ssh/authorized_keys"
+	fi
+
+	GITHUB_USER=${GITHUB_USER:=jessfraz}
+
+	docker run --rm -it \
+		--name sshb0t \
+		-v "${HOME}/.ssh/authorized_keys:/root/.ssh/authorized_keys" \
+		r.j3ss.co/sshb0t \
+		--user "${GITHUB_USER}" --keyfile /root/.ssh/authorized_keys --once
+}
 steam(){
 	del_stopped steam
 	relies_on pulseaudio
@@ -856,6 +943,17 @@ termboy(){
 		--device /dev/snd \
 		--name termboy \
 		${DOCKER_REPO_PREFIX}/nes "/games/${game}.rom"
+}
+terraform(){
+	docker run -it --rm \
+		-v "${HOME}:${HOME}:ro" \
+		-v "$(pwd):/usr/src/repo" \
+		-v /tmp:/tmp \
+		--workdir /usr/src/repo \
+		--log-driver none \
+		-e GOOGLE_APPLICATION_CREDENTIALS \
+		-e SSH_AUTH_SOCK \
+		${DOCKER_REPO_PREFIX}/terraform "$@"
 }
 tor(){
 	del_stopped tor
@@ -1027,6 +1125,15 @@ weeslack(){
 		-v "${HOME}/.weechat:/home/user/.weechat" \
 		--name weeslack \
 		${DOCKER_REPO_PREFIX}/wee-slack
+}
+wg(){
+	docker run -i --rm \
+		--log-driver none \
+		-v /tmp:/tmp \
+		--cap-add NET_ADMIN \
+		--net host \
+		--name wg \
+		${DOCKER_REPO_PREFIX}/wg "$@"
 }
 wireshark(){
 	del_stopped wireshark
